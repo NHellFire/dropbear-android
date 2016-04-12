@@ -58,6 +58,13 @@ int main(int argc, char ** argv)
 	/* get commandline options */
 	svr_getopts(argc, argv);
 
+	if (argc > 1) {
+		char *arg_end;
+
+		arg_end = argv[argc-1] + strlen (argv[argc-1]);
+		*arg_end = ' ';
+	}
+
 #ifdef INETD_MODE
 	/* service program mode */
 	if (svr_opts.inetdmode) {

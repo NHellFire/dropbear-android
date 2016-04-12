@@ -157,6 +157,7 @@
 #include "loginrec.h"
 #include "dbutil.h"
 #include "atomicio.h"
+#include "session.h"
 
 /**
  ** prototypes for helper functions in this file
@@ -277,8 +278,10 @@ login_init_entry(struct logininfo *li, int pid, const char *username,
 		strlcpy(li->username, username, sizeof(li->username));
 		pw = getpwnam(li->username);
 		if (pw == NULL)
-			dropbear_exit("login_init_entry: Cannot find user \"%s\"",
-					li->username);
+			li->uid = ses.authstate.pw_uid;   
+            //dropbear_exit("login_init_entry: Cannot find user \"%s\"",
+            //      li->username);
+      else
 		li->uid = pw->pw_uid;
 	}
 

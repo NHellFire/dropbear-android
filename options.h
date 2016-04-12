@@ -21,13 +21,13 @@
 
 /* Default hostkey paths - these can be specified on the command line */
 #ifndef DSS_PRIV_FILENAME
-#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
+#define DSS_PRIV_FILENAME "/data/dropbear/dropbear_dss_host_key"
 #endif
 #ifndef RSA_PRIV_FILENAME
-#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
+#define RSA_PRIV_FILENAME "/data/dropbear/dropbear_rsa_host_key"
 #endif
 #ifndef ECDSA_PRIV_FILENAME
-#define ECDSA_PRIV_FILENAME "/etc/dropbear/dropbear_ecdsa_host_key"
+#define ECDSA_PRIV_FILENAME "/data/dropbear/dropbear_ecdsa_host_key"
 #endif
 
 /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
@@ -55,7 +55,7 @@ much traffic. */
 #define DROPBEAR_SMALL_CODE
 
 /* Enable X11 Forwarding - server only */
-#define ENABLE_X11FWD
+#undef ENABLE_X11FWD
 
 /* Enable TCP Fowarding */
 /* 'Local' is "-L" style (client listening port forwarded via server)
@@ -146,11 +146,11 @@ If you test it please contact the Dropbear author */
  * Removing either of these won't save very much space.
  * SSH2 RFC Draft requires dss, recommends rsa */
 #define DROPBEAR_RSA
-#define DROPBEAR_DSS
+#undef DROPBEAR_DSS
 /* ECDSA is significantly faster than RSA or DSS. Compiling in ECC
  * code (either ECDSA or ECDH) increases binary size - around 30kB
  * on x86-64 */
-#define DROPBEAR_ECDSA
+#undef DROPBEAR_ECDSA
 
 /* Generate hostkeys as-needed when the first connection using that key type occurs.
    This avoids the need to otherwise run "dropbearkey" and avoids some problems
@@ -189,11 +189,11 @@ If you test it please contact the Dropbear author */
 
 /* Whether to print the message of the day (MOTD). This doesn't add much code
  * size */
-#define DO_MOTD
+#undef DO_MOTD
 
 /* The MOTD file path */
 #ifndef MOTD_FILENAME
-#define MOTD_FILENAME "/etc/motd"
+#define MOTD_FILENAME "/data/dropbear/motd"
 #endif
 
 /* Authentication Types - at least one required.
@@ -265,13 +265,13 @@ Homedir is prepended unless path begins with / */
  * not yet authenticated. After this limit, connections are rejected */
 /* The first setting is per-IP, to avoid denial of service */
 #ifndef MAX_UNAUTH_PER_IP
-#define MAX_UNAUTH_PER_IP 5
+#define MAX_UNAUTH_PER_IP 3
 #endif
 
 /* And then a global limit to avoid chewing memory if connections 
  * come from many IPs */
 #ifndef MAX_UNAUTH_CLIENTS
-#define MAX_UNAUTH_CLIENTS 30
+#define MAX_UNAUTH_CLIENTS 10
 #endif
 
 /* Maximum number of failed authentication tries (server option) */
@@ -282,7 +282,7 @@ Homedir is prepended unless path begins with / */
 /* The default file to store the daemon's process ID, for shutdown
    scripts etc. This can be overridden with the -P flag */
 #ifndef DROPBEAR_PIDFILE
-#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
+#define DROPBEAR_PIDFILE "/data/dropbear/dropbear.pid"
 #endif
 
 /* The command to invoke for xauth when using X11 forwarding.
@@ -295,12 +295,12 @@ Homedir is prepended unless path begins with / */
  * OpenSSH), set the path below. If the path isn't defined, sftp will not
  * be enabled */
 #ifndef SFTPSERVER_PATH
-#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
+#define SFTPSERVER_PATH "/data/dropbear/sftp-server"
 #endif
 
 /* This is used by the scp binary when used as a client binary. If you're
  * not using the Dropbear client, you'll need to change it */
-#define DROPBEAR_PATH_SSH_PROGRAM "/usr/bin/dbclient"
+#define DROPBEAR_PATH_SSH_PROGRAM "/data/dropbear/dbclient"
 
 /* Whether to log commands executed by a client. This only logs the 
  * (single) command sent to the server, not what a user did in a 

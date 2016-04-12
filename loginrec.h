@@ -31,6 +31,12 @@
 
 #include "includes.h"
 
+// Removed in Android NDK apparently
+// Value taken from utmp.h on Linux
+#ifndef DEAD_PROCESS
+#  define DEAD_PROCESS 8
+#endif
+
 /* RCSID("Id: loginrec.h,v 1.2 2004/05/04 10:17:43 matt Exp "); */
 
 /* The following #defines are from OpenSSH's defines.h, required for loginrec */
