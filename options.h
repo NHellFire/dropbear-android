@@ -10,6 +10,8 @@
 
 /* IMPORTANT: Many options will require "make clean" after changes */
 
+#undef USE_LASTLOG
+
 #ifndef DROPBEAR_DEFPORT
 #define DROPBEAR_DEFPORT "22"
 #endif
@@ -52,7 +54,7 @@
 several kB in binary size however will make the symmetrical ciphers and hashes
 slower, perhaps by 50%. Recommended for small systems that aren't doing
 much traffic. */
-#define DROPBEAR_SMALL_CODE
+#undef DROPBEAR_SMALL_CODE
 
 /* Enable X11 Forwarding - server only */
 #undef ENABLE_X11FWD
@@ -342,7 +344,7 @@ be overridden at runtime with -I. 0 disables idle timeouts */
 #define DEFAULT_IDLE_TIMEOUT 0
 
 /* The default path. This will often get replaced by the shell */
-#define DEFAULT_PATH "/usr/bin:/bin"
+#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin"
 
 /* Some other defines (that mostly should be left alone) are defined
  * in sysoptions.h */
