@@ -34,13 +34,14 @@
 
 typedef struct runopts {
 
-#if defined(ENABLE_SVR_REMOTETCPFWD) || defined(ENABLE_CLI_LOCALTCPFWD) \
-    || defined(ENABLE_CLI_REMOTETCPFWD)
+#if DROPBEAR_SVR_REMOTETCPFWD || DROPBEAR_CLI_LOCALTCPFWD \
+    || DROPBEAR_CLI_REMOTETCPFWD
 	int listen_fwd_all;
 #endif
 	unsigned int recv_window;
 	time_t keepalive_secs; /* Time between sending keepalives. 0 is off */
 	time_t idle_timeout_secs; /* Exit if no traffic is sent/received in this time */
+	int usingsyslog;
 
 #ifndef DISABLE_ZLIB
 	/* TODO: add a commandline flag. Currently this is on by default if compression
@@ -53,7 +54,7 @@ typedef struct runopts {
 	} compress_mode;
 #endif
 
-#ifdef ENABLE_USER_ALGO_LIST
+#if DROPBEAR_USER_ALGO_LIST
 	char *cipher_list;
 	char *mac_list;
 #endif
@@ -64,14 +65,13 @@ extern runopts opts;
 
 int readhostkey(const char * filename, sign_key * hostkey, 
 	enum signkey_type *type);
-void load_all_hostkeys();
+void load_all_hostkeys(void);
 
 typedef struct svr_runopts {
 
 	char * bannerfile;
 
 	int forkbg;
-	int usingsyslog;
 
 	/* ports and addresses are arrays of the portcount 
 	listening ports. strings are malloced. */
@@ -98,10 +98,10 @@ typedef struct svr_runopts {
 	int norootpass;
 	int allowblankpass;
 
-#ifdef ENABLE_SVR_REMOTETCPFWD
+#if DROPBEAR_SVR_REMOTETCPFWD
 	int noremotetcp;
 #endif
-#ifdef ENABLE_SVR_LOCALTCPFWD
+#if DROPBEAR_SVR_LOCALTCPFWD
 	int nolocaltcp;
 #endif
 
@@ -122,12 +122,14 @@ typedef struct svr_runopts {
    uid_t uid;
    gid_t gid;
 
+	char * forced_command;
+
 } svr_runopts;
 
 extern svr_runopts svr_opts;
 
 void svr_getopts(int argc, char ** argv);
-void loadhostkeys();
+void loadhostkeys(void);
 
 typedef struct cli_runopts {
 
@@ -145,16 +147,19 @@ typedef struct cli_runopts {
 	int no_cmd;
 	int backgrounded;
 	int is_subsystem;
-#ifdef ENABLE_CLI_PUBKEY_AUTH
+#if DROPBEAR_CLI_PUBKEY_AUTH
 	m_list *privkeys; /* Keys to use for public-key auth */
 #endif
-#ifdef ENABLE_CLI_REMOTETCPFWD
+#if DROPBEAR_CLI_ANYTCPFWD
+	int exit_on_fwd_failure;
+#endif
+#if DROPBEAR_CLI_REMOTETCPFWD
 	m_list * remotefwds;
 #endif
-#ifdef ENABLE_CLI_LOCALTCPFWD
+#if DROPBEAR_CLI_LOCALTCPFWD
 	m_list * localfwds;
 #endif
-#ifdef ENABLE_CLI_AGENTFWD
+#if DROPBEAR_CLI_AGENTFWD
 	int agent_fwd;
 	int agent_keys_loaded; /* whether pubkeys has been populated with a 
 							  list of keys held by the agent */
@@ -162,11 +167,11 @@ typedef struct cli_runopts {
 	                 agent sessions have their own file descriptors */
 #endif
 
-#ifdef ENABLE_CLI_NETCAT
+#if DROPBEAR_CLI_NETCAT
 	char *netcat_host;
 	unsigned int netcat_port;
 #endif
-#ifdef ENABLE_CLI_PROXYCMD
+#if DROPBEAR_CLI_PROXYCMD
 	char *proxycmd;
 #endif
 } cli_runopts;
@@ -174,8 +179,8 @@ typedef struct cli_runopts {
 extern cli_runopts cli_opts;
 void cli_getopts(int argc, char ** argv);
 
-#ifdef ENABLE_USER_ALGO_LIST
-void parse_ciphers_macs();
+#if DROPBEAR_USER_ALGO_LIST
+void parse_ciphers_macs(void);
 #endif
 
 void print_version(void);

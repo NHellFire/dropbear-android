@@ -31,7 +31,7 @@
 #include "dbutil.h"
 #include "auth.h"
 
-#ifdef ENABLE_SVR_PAM_AUTH
+#if DROPBEAR_SVR_PAM_AUTH
 
 #if defined(HAVE_SECURITY_PAM_APPL_H)
 #include <security/pam_appl.h>
@@ -218,7 +218,7 @@ void svr_auth_pam() {
 	}
 
 	/* just to set it to something */
-	if ((rc = pam_set_item(pamHandlep, PAM_TTY, "ssh") != PAM_SUCCESS)) {
+	if ((rc = pam_set_item(pamHandlep, PAM_TTY, "ssh")) != PAM_SUCCESS) {
 		dropbear_log(LOG_WARNING, "pam_set_item() failed, rc=%d, %s",
 				rc, pam_strerror(pamHandlep, rc));
 		goto cleanup;
@@ -270,4 +270,4 @@ cleanup:
 	}
 }
 
-#endif /* ENABLE_SVR_PAM_AUTH */
+#endif /* DROPBEAR_SVR_PAM_AUTH */

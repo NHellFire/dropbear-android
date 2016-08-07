@@ -32,7 +32,7 @@
 /* this is used to generate unique output from the same hashpool */
 static uint32_t counter = 0;
 /* the max value for the counter, so it won't integer overflow */
-#define MAX_COUNTER 1<<30 
+#define MAX_COUNTER (1<<30)
 
 static unsigned char hashpool[SHA1_HASH_SIZE] = {0};
 static int donerandinit = 0;
@@ -59,7 +59,7 @@ process_file(hash_state *hs, const char *filename,
 	unsigned int readcount;
 	int ret = DROPBEAR_FAILURE;
 
-#ifdef DROPBEAR_PRNGD_SOCKET
+#if DROPBEAR_PRNGD_SOCKET
 	if (prngd)
 	{
 		readfd = connect_unix(filename);
@@ -107,7 +107,7 @@ process_file(hash_state *hs, const char *filename,
 			wantread = MIN(sizeof(readbuf), len-readcount);
 		}
 
-#ifdef DROPBEAR_PRNGD_SOCKET
+#if DROPBEAR_PRNGD_SOCKET
 		if (prngd)
 		{
 			char egdcmd[2];
@@ -185,7 +185,7 @@ void seedrandom() {
 	/* existing state */
 	sha1_process(&hs, (void*)hashpool, sizeof(hashpool));
 
-#ifdef DROPBEAR_PRNGD_SOCKET
+#if DROPBEAR_PRNGD_SOCKET
 	if (process_file(&hs, DROPBEAR_PRNGD_SOCKET, INIT_SEED_SIZE, 1) 
 			!= DROPBEAR_SUCCESS) {
 		dropbear_exit("Failure reading random device %s", 

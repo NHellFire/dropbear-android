@@ -58,7 +58,7 @@ struct ChanSess {
 	/* Used to set $SSH_CLIENT in the child session. */
 	char *client_string;
 	
-#ifndef DISABLE_X11FWD
+#if DROPBEAR_X11FWD
 	struct Listener * x11listener;
 	int x11port;
 	char * x11authprot;
@@ -67,13 +67,13 @@ struct ChanSess {
 	unsigned char x11singleconn;
 #endif
 
-#ifdef ENABLE_SVR_AGENTFWD
+#if DROPBEAR_SVR_AGENTFWD
 	struct Listener * agentlistener;
 	char * agentfile;
 	char * agentdir;
 #endif
 
-#ifdef ENABLE_SVR_PUBKEY_OPTIONS
+#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
 	char *original_command;
 #endif
 };
@@ -86,14 +86,14 @@ struct ChildPid {
 
 void addnewvar(const char* param, const char* var);
 
-void cli_send_chansess_request();
-void cli_tty_cleanup();
-void cli_chansess_winchange();
-#ifdef ENABLE_CLI_NETCAT
-void cli_send_netcat_request();
+void cli_send_chansess_request(void);
+void cli_tty_cleanup(void);
+void cli_chansess_winchange(void);
+#if DROPBEAR_CLI_NETCAT
+void cli_send_netcat_request(void);
 #endif
 
-void svr_chansessinitialise();
+void svr_chansessinitialise(void);
 extern const struct ChanType svrchansess;
 
 struct SigMap {

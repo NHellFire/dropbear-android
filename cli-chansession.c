@@ -43,7 +43,7 @@ static void send_chansess_shell_req(struct Channel *channel);
 static void cli_escape_handler(struct Channel *channel, unsigned char* buf, int *len);
 static int cli_init_netcat(struct Channel *channel);
 
-static void cli_tty_setup();
+static void cli_tty_setup(void);
 
 const struct ChanType clichansess = {
 	0, /* sepfds */
@@ -355,7 +355,7 @@ static int cli_initchansess(struct Channel *channel) {
 
 	cli_init_stdpipe_sess(channel);
 
-#ifdef ENABLE_CLI_AGENTFWD
+#if DROPBEAR_CLI_AGENTFWD
 	if (cli_opts.agent_fwd) {
 		cli_setup_agent(channel);
 	}
@@ -379,7 +379,7 @@ static int cli_initchansess(struct Channel *channel) {
 	return 0; /* Success */
 }
 
-#ifdef ENABLE_CLI_NETCAT
+#if DROPBEAR_CLI_NETCAT
 
 static const struct ChanType cli_chan_netcat = {
 	0, /* sepfds */
@@ -438,7 +438,6 @@ do_escape(unsigned char c) {
 		case '.':
 			dropbear_exit("Terminated");
 			return 1;
-			break;
 		case 0x1a:
 			/* ctrl-z */
 			cli_tty_cleanup();
@@ -447,9 +446,9 @@ do_escape(unsigned char c) {
 			cli_tty_setup();
 			cli_ses.winchange = 1;
 			return 1;
-			break;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 static

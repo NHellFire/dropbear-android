@@ -36,7 +36,7 @@ void set_connect_fds(fd_set *writefd);
 /* Handles ready sockets after select() */
 void handle_connect_fds(fd_set *writefd);
 /* Cleanup */
-void remove_connect_pending();
+void remove_connect_pending(void);
 
 /* Doesn't actually stop the connect, but adds a dummy callback instead */
 void cancel_connect(struct dropbear_progress_connection *c);
@@ -48,7 +48,7 @@ void connect_set_writequeue(struct dropbear_progress_connection *c, struct Queue
 void packet_queue_to_iovec(struct Queue *queue, struct iovec *iov, unsigned int *iov_count);
 void packet_queue_consume(struct Queue *queue, ssize_t written);
 
-#ifdef DROPBEAR_SERVER_TCP_FAST_OPEN
+#if DROPBEAR_SERVER_TCP_FAST_OPEN
 /* Try for any Linux builds, will fall back if the kernel doesn't support it */
 void set_listen_fast_open(int sock);
 /* Define values which may be supported by the kernel even if the libc is too old */

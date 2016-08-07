@@ -39,10 +39,10 @@
 #include "crypto_desc.h"
 #include "netio.h"
 
-static void cli_remoteclosed() ATTRIB_NORETURN;
-static void cli_sessionloop();
-static void cli_session_init();
-static void cli_finished() ATTRIB_NORETURN;
+static void cli_remoteclosed(void) ATTRIB_NORETURN;
+static void cli_sessionloop(void);
+static void cli_session_init(pid_t proxy_cmd_pid);
+static void cli_finished(void) ATTRIB_NORETURN;
 static void recv_msg_service_accept(void);
 static void cli_session_cleanup(void);
 static void recv_msg_global_request_cli(void);
@@ -73,7 +73,7 @@ static const packettype cli_packettypes[] = {
 	{SSH_MSG_GLOBAL_REQUEST, recv_msg_global_request_cli},
 	{SSH_MSG_CHANNEL_SUCCESS, ignore_recv_response},
 	{SSH_MSG_CHANNEL_FAILURE, ignore_recv_response},
-#ifdef  ENABLE_CLI_REMOTETCPFWD
+#if DROPBEAR_CLI_REMOTETCPFWD
 	{SSH_MSG_REQUEST_SUCCESS, cli_recv_msg_request_success}, /* client */
 	{SSH_MSG_REQUEST_FAILURE, cli_recv_msg_request_failure}, /* client */
 #else
@@ -85,10 +85,10 @@ static const packettype cli_packettypes[] = {
 };
 
 static const struct ChanType *cli_chantypes[] = {
-#ifdef ENABLE_CLI_REMOTETCPFWD
+#if DROPBEAR_CLI_REMOTETCPFWD
 	&cli_chan_tcpremote,
 #endif
-#ifdef ENABLE_CLI_AGENTFWD
+#if DROPBEAR_CLI_AGENTFWD
 	&cli_chan_agent,
 #endif
 	NULL /* Null termination */
@@ -104,7 +104,7 @@ void cli_connected(int result, int sock, void* userdata, const char *errstring)
 	update_channel_prio();
 }
 
-void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection *progress) {
+void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection *progress, pid_t proxy_cmd_pid) {
 
 	common_session_init(sock_in, sock_out);
 
@@ -115,8 +115,7 @@ void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection 
 	chaninitialise(cli_chantypes);
 
 	/* Set up cli_ses vars */
-	cli_session_init();
-
+	cli_session_init(proxy_cmd_pid);
 
 	/* Ready to go */
 	sessinitdone = 1;
@@ -134,13 +133,13 @@ void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection 
 
 }
 
-#ifdef USE_KEX_FIRST_FOLLOWS
+#if DROPBEAR_KEX_FIRST_FOLLOWS
 static void cli_send_kex_first_guess() {
 	send_msg_kexdh_init();
 }
 #endif
 
-static void cli_session_init() {
+static void cli_session_init(pid_t proxy_cmd_pid) {
 
 	cli_ses.state = STATE_NOTHING;
 	cli_ses.kex_state = KEX_NOTHING;
@@ -159,12 +158,14 @@ static void cli_session_init() {
 
 	cli_ses.retval = EXIT_SUCCESS; /* Assume it's clean if we don't get a
 									  specific exit status */
+	cli_ses.proxy_cmd_pid = proxy_cmd_pid;
+	TRACE(("proxy command PID='%d'", proxy_cmd_pid));
 
 	/* Auth */
 	cli_ses.lastprivkey = NULL;
 	cli_ses.lastauthtype = 0;
 
-#ifdef DROPBEAR_NONE_CIPHER
+#if DROPBEAR_NONE_CIPHER
 	cli_ses.cipher_none_after_auth = get_algo_usable(sshciphers, "none");
 	set_algo_usable(sshciphers, "none", 0);
 #else
@@ -181,7 +182,7 @@ static void cli_session_init() {
 
 	ses.isserver = 0;
 
-#ifdef USE_KEX_FIRST_FOLLOWS
+#if DROPBEAR_KEX_FIRST_FOLLOWS
 	ses.send_kex_first_guess = cli_send_kex_first_guess;
 #endif
 
@@ -268,8 +269,13 @@ static void cli_sessionloop() {
 			return;
 
 		case USERAUTH_SUCCESS_RCVD:
+#ifndef DISABLE_SYSLOG
+			if (opts.usingsyslog) {
+				dropbear_log(LOG_INFO, "Authentication succeeded.");
+			}
+#endif
 
-#ifdef DROPBEAR_NONE_CIPHER
+#if DROPBEAR_NONE_CIPHER
 			if (cli_ses.cipher_none_after_auth)
 			{
 				set_algo_usable(sshciphers, "none", 1);
@@ -293,7 +299,7 @@ static void cli_sessionloop() {
 				}
 			}
 			
-#ifdef ENABLE_CLI_NETCAT
+#if DROPBEAR_CLI_NETCAT
 			if (cli_opts.netcat_host) {
 				cli_send_netcat_request();
 			} else 
@@ -302,10 +308,10 @@ static void cli_sessionloop() {
 				cli_send_chansess_request();
 			}
 
-#ifdef ENABLE_CLI_LOCALTCPFWD
+#if DROPBEAR_CLI_LOCALTCPFWD
 			setup_localtcp();
 #endif
-#ifdef ENABLE_CLI_REMOTETCPFWD
+#if DROPBEAR_CLI_REMOTETCPFWD
 			setup_remotetcp();
 #endif
 
@@ -334,17 +340,31 @@ static void cli_sessionloop() {
 
 }
 
+void kill_proxy_command(void) {
+	/*
+	 * Send SIGHUP to proxy command if used. We don't wait() in
+	 * case it hangs and instead rely on init to reap the child
+	 */
+	if (cli_ses.proxy_cmd_pid > 1) {
+		TRACE(("killing proxy command with PID='%d'", cli_ses.proxy_cmd_pid));
+		kill(cli_ses.proxy_cmd_pid, SIGHUP);
+	}
+}
+
 static void cli_session_cleanup(void) {
 
 	if (!sessinitdone) {
 		return;
 	}
 
+	kill_proxy_command();
+
 	/* Set std{in,out,err} back to non-blocking - busybox ash dies nastily if
 	 * we don't revert the flags */
-	fcntl(cli_ses.stdincopy, F_SETFL, cli_ses.stdinflags);
-	fcntl(cli_ses.stdoutcopy, F_SETFL, cli_ses.stdoutflags);
-	fcntl(cli_ses.stderrcopy, F_SETFL, cli_ses.stderrflags);
+	/* Ignore return value since there's nothing we can do */
+	(void)fcntl(cli_ses.stdincopy, F_SETFL, cli_ses.stdinflags);
+	(void)fcntl(cli_ses.stdoutcopy, F_SETFL, cli_ses.stdoutflags);
+	(void)fcntl(cli_ses.stderrcopy, F_SETFL, cli_ses.stderrflags);
 
 	cli_tty_cleanup();
 

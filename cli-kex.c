@@ -48,6 +48,7 @@ void send_msg_kexdh_init() {
 	CHECKCLEARTOWRITE();
 	buf_putbyte(ses.writepayload, SSH_MSG_KEXDH_INIT);
 	switch (ses.newkeys->algo_kex->mode) {
+#if DROPBEAR_NORMAL_DH
 		case DROPBEAR_KEX_NORMAL_DH:
 			if (ses.newkeys->algo_kex != cli_ses.param_kex_algo
 				|| !cli_ses.dh_param) {
@@ -58,8 +59,9 @@ void send_msg_kexdh_init() {
 			}
 			buf_putmpint(ses.writepayload, &cli_ses.dh_param->pub);
 			break;
+#endif
+#if DROPBEAR_ECDH
 		case DROPBEAR_KEX_ECDH:
-#ifdef DROPBEAR_ECDH
 			if (ses.newkeys->algo_kex != cli_ses.param_kex_algo
 				|| !cli_ses.ecdh_param) {
 				if (cli_ses.ecdh_param) {
@@ -68,9 +70,9 @@ void send_msg_kexdh_init() {
 				cli_ses.ecdh_param = gen_kexecdh_param();
 			}
 			buf_put_ecc_raw_pubkey_string(ses.writepayload, &cli_ses.ecdh_param->key);
-#endif
 			break;
-#ifdef DROPBEAR_CURVE25519
+#endif
+#if DROPBEAR_CURVE25519
 		case DROPBEAR_KEX_CURVE25519:
 			if (ses.newkeys->algo_kex != cli_ses.param_kex_algo
 				|| !cli_ses.curve25519_param) {
@@ -80,8 +82,8 @@ void send_msg_kexdh_init() {
 				cli_ses.curve25519_param = gen_kexcurve25519_param();
 			}
 			buf_putstring(ses.writepayload, (const char*)cli_ses.curve25519_param->pub, CURVE25519_LEN);
-#endif
 			break;
+#endif
 	}
 
 	cli_ses.param_kex_algo = ses.newkeys->algo_kex;
@@ -118,6 +120,7 @@ void recv_msg_kexdh_reply() {
 	}
 
 	switch (ses.newkeys->algo_kex->mode) {
+#if DROPBEAR_NORMAL_DH
 		case DROPBEAR_KEX_NORMAL_DH:
 			{
 			DEF_MP_INT(dh_f);
@@ -131,37 +134,38 @@ void recv_msg_kexdh_reply() {
 			mp_clear(&dh_f);
 			}
 			break;
+#endif
+#if DROPBEAR_ECDH
 		case DROPBEAR_KEX_ECDH:
-#ifdef DROPBEAR_ECDH
 			{
 			buffer *ecdh_qs = buf_getstringbuf(ses.payload);
 			kexecdh_comb_key(cli_ses.ecdh_param, ecdh_qs, hostkey);
 			buf_free(ecdh_qs);
 			}
-#endif
 			break;
-#ifdef DROPBEAR_CURVE25519
+#endif
+#if DROPBEAR_CURVE25519
 		case DROPBEAR_KEX_CURVE25519:
 			{
 			buffer *ecdh_qs = buf_getstringbuf(ses.payload);
 			kexcurve25519_comb_key(cli_ses.curve25519_param, ecdh_qs, hostkey);
 			buf_free(ecdh_qs);
 			}
-#endif
 			break;
+#endif
 	}
 
 	if (cli_ses.dh_param) {
 		free_kexdh_param(cli_ses.dh_param);
 		cli_ses.dh_param = NULL;
 	}
-#ifdef DROPBEAR_ECDH
+#if DROPBEAR_ECDH
 	if (cli_ses.ecdh_param) {
 		free_kexecdh_param(cli_ses.ecdh_param);
 		cli_ses.ecdh_param = NULL;
 	}
 #endif
-#ifdef DROPBEAR_CURVE25519
+#if DROPBEAR_CURVE25519
 	if (cli_ses.curve25519_param) {
 		free_kexcurve25519_param(cli_ses.curve25519_param);
 		cli_ses.curve25519_param = NULL;
@@ -186,11 +190,11 @@ static void ask_to_confirm(unsigned char* keyblob, unsigned int keybloblen,
 
 	char* fp = NULL;
 	FILE *tty = NULL;
-	char response = 'z';
+	int response = 'z';
 
 	fp = sign_key_fingerprint(keyblob, keybloblen);
 	if (cli_opts.always_accept_key) {
-		fprintf(stderr, "\nHost '%s' key accepted unconditionally.\n(%s fingerprint %s)\n",
+		dropbear_log(LOG_INFO, "\nHost '%s' key accepted unconditionally.\n(%s fingerprint %s)\n",
 				cli_opts.remotehost,
 				algoname,
 				fp);
@@ -290,7 +294,7 @@ static void checkhostkey(unsigned char* keyblob, unsigned int keybloblen) {
 	int ret;
 
 	if (cli_opts.no_hostkey_check) {
-		fprintf(stderr, "Caution, skipping hostkey check for %s\n", cli_opts.remotehost);
+		dropbear_log(LOG_INFO, "Caution, skipping hostkey check for %s\n", cli_opts.remotehost);
 		return;
 	}
 

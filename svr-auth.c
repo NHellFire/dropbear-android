@@ -35,7 +35,7 @@
 #include "runopts.h"
 #include "dbrandom.h"
 
-static void authclear();
+static void authclear(void);
 static int checkusername(char *username, unsigned int userlen);
 
 /* initialise the first time for a session, resetting all parameters */
@@ -56,10 +56,10 @@ void svr_authinitialise() {
 static void authclear() {
 	
 	memset(&ses.authstate, 0, sizeof(ses.authstate));
-#ifdef ENABLE_SVR_PUBKEY_AUTH
+#if DROPBEAR_SVR_PUBKEY_AUTH
 	ses.authstate.authtypes |= AUTH_TYPE_PUBKEY;
 #endif
-#if defined(ENABLE_SVR_PASSWORD_AUTH) || defined(ENABLE_SVR_PAM_AUTH)
+#if DROPBEAR_SVR_PASSWORD_AUTH || DROPBEAR_SVR_PAM_AUTH
 	if (!svr_opts.noauthpass) {
 		ses.authstate.authtypes |= AUTH_TYPE_PASSWORD;
 	}
@@ -169,7 +169,7 @@ void recv_msg_userauth_request() {
 		}
 	}
 	
-#ifdef ENABLE_SVR_PASSWORD_AUTH
+#if DROPBEAR_SVR_PASSWORD_AUTH
 	if (!svr_opts.noauthpass &&
 			!(svr_opts.norootpass && ses.authstate.pw_uid == 0) ) {
 		/* user wants to try password auth */
@@ -185,7 +185,7 @@ void recv_msg_userauth_request() {
 	}
 #endif
 
-#ifdef ENABLE_SVR_PAM_AUTH
+#if DROPBEAR_SVR_PAM_AUTH
 	if (!svr_opts.noauthpass &&
 			!(svr_opts.norootpass && ses.authstate.pw_uid == 0) ) {
 		/* user wants to try password auth */
@@ -200,7 +200,7 @@ void recv_msg_userauth_request() {
 	}
 #endif
 
-#ifdef ENABLE_SVR_PUBKEY_AUTH
+#if DROPBEAR_SVR_PUBKEY_AUTH
 	/* user wants to try pubkey auth */
 	if (methodlen == AUTH_METHOD_PUBKEY_LEN &&
 			strncmp(methodname, AUTH_METHOD_PUBKEY,

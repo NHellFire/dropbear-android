@@ -1,36 +1,37 @@
-#ifndef DROPBEAR_OPTIONS_H
-#define DROPBEAR_OPTIONS_H
+#ifndef DROPBEAR_DEFAULT_OPTIONS_H_
+#define DROPBEAR_DEFAULT_OPTIONS_H_
+/*
+                     > > > Read This < < <
 
-/* 
-Local compile-time configuration should be defined in localoptions.h
-See default_options.h.in for a description of the available options.
-*/
+default_options.h.in (this file) documents compile-time options, and provides 
+default values.
 
-/* Define compile-time options below - the "#ifndef DROPBEAR_XXX .... #endif"
- * parts are to allow for commandline -DDROPBEAR_XXX options etc. */
+Local customisation should be added to localoptions.h which is
+used if it exists. Options defined there will override any options in this
+file (#ifndef guards added by ifndef_wrapper.sh).
 
-/* IMPORTANT: Many options will require "make clean" after changes */
+Options can also be defined with -DDROPBEAR_XXX Makefile CFLAGS
 
-#undef USE_LASTLOG
+IMPORTANT: Many options will require "make clean" after changes */
 
 #ifndef DROPBEAR_DEFPORT
 #define DROPBEAR_DEFPORT "22"
 #endif
 
-#ifndef DROPBEAR_DEFADDRESS
 /* Listen on all interfaces */
+#ifndef DROPBEAR_DEFADDRESS
 #define DROPBEAR_DEFADDRESS ""
 #endif
 
 /* Default hostkey paths - these can be specified on the command line */
 #ifndef DSS_PRIV_FILENAME
-#define DSS_PRIV_FILENAME "/data/dropbear/dropbear_dss_host_key"
+#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
 #endif
 #ifndef RSA_PRIV_FILENAME
-#define RSA_PRIV_FILENAME "/data/dropbear/dropbear_rsa_host_key"
+#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
 #endif
 #ifndef ECDSA_PRIV_FILENAME
-#define ECDSA_PRIV_FILENAME "/data/dropbear/dropbear_ecdsa_host_key"
+#define ECDSA_PRIV_FILENAME "/etc/dropbear/dropbear_ecdsa_host_key"
 #endif
 
 /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
@@ -43,8 +44,12 @@ See default_options.h.in for a description of the available options.
  *
  * Both of these flags can be defined at once, don't compile without at least
  * one of them. */
-#define NON_INETD_MODE
-#define INETD_MODE
+#ifndef NON_INETD_MODE
+#define NON_INETD_MODE 1
+#endif
+#ifndef INETD_MODE
+#define INETD_MODE 1
+#endif
 
 /* Setting this disables the fast exptmod bignum code. It saves ~5kB, but is
  * perhaps 20% slower for pubkey operations (it is probably worth experimenting
@@ -55,121 +60,188 @@ See default_options.h.in for a description of the available options.
 several kB in binary size however will make the symmetrical ciphers and hashes
 slower, perhaps by 50%. Recommended for small systems that aren't doing
 much traffic. */
-#undef DROPBEAR_SMALL_CODE
+#ifndef DROPBEAR_SMALL_CODE
+#define DROPBEAR_SMALL_CODE 1
+#endif
 
 /* Enable X11 Forwarding - server only */
-#undef ENABLE_X11FWD
+#ifndef DROPBEAR_X11FWD
+#define DROPBEAR_X11FWD 1
+#endif
 
 /* Enable TCP Fowarding */
 /* 'Local' is "-L" style (client listening port forwarded via server)
  * 'Remote' is "-R" style (server listening port forwarded via client) */
 
-#define ENABLE_CLI_LOCALTCPFWD
-#define ENABLE_CLI_REMOTETCPFWD
+#ifndef DROPBEAR_CLI_LOCALTCPFWD
+#define DROPBEAR_CLI_LOCALTCPFWD 1
+#endif
+#ifndef DROPBEAR_CLI_REMOTETCPFWD
+#define DROPBEAR_CLI_REMOTETCPFWD 1
+#endif
 
-#define ENABLE_SVR_LOCALTCPFWD
-#define ENABLE_SVR_REMOTETCPFWD
+#ifndef DROPBEAR_SVR_LOCALTCPFWD
+#define DROPBEAR_SVR_LOCALTCPFWD 1
+#endif
+#ifndef DROPBEAR_SVR_REMOTETCPFWD
+#define DROPBEAR_SVR_REMOTETCPFWD 1
+#endif
 
 /* Enable Authentication Agent Forwarding */
-#define ENABLE_SVR_AGENTFWD
-#define ENABLE_CLI_AGENTFWD
+#ifndef DROPBEAR_SVR_AGENTFWD
+#define DROPBEAR_SVR_AGENTFWD 1
+#endif
+#ifndef DROPBEAR_CLI_AGENTFWD
+#define DROPBEAR_CLI_AGENTFWD 1
+#endif
 
 
-/* Note: Both ENABLE_CLI_PROXYCMD and ENABLE_CLI_NETCAT must be set to
+/* Note: Both DROPBEAR_CLI_PROXYCMD and DROPBEAR_CLI_NETCAT must be set to
  * allow multihop dbclient connections */
 
 /* Allow using -J <proxycommand> to run the connection through a 
    pipe to a program, rather the normal TCP connection */
-#define ENABLE_CLI_PROXYCMD
+#ifndef DROPBEAR_CLI_PROXYCMD
+#define DROPBEAR_CLI_PROXYCMD 1
+#endif
 
 /* Enable "Netcat mode" option. This will forward standard input/output
  * to a remote TCP-forwarded connection */
-#define ENABLE_CLI_NETCAT
+#ifndef DROPBEAR_CLI_NETCAT
+#define DROPBEAR_CLI_NETCAT 1
+#endif
 
 /* Whether to support "-c" and "-m" flags to choose ciphers/MACs at runtime */
-#define ENABLE_USER_ALGO_LIST
+#ifndef ENABLE_USER_ALGO_LIST
+#define ENABLE_USER_ALGO_LIST 1
+#endif
 
 /* Encryption - at least one required.
  * Protocol RFC requires 3DES and recommends AES128 for interoperability.
  * Including multiple keysize variants the same cipher 
  * (eg AES256 as well as AES128) will result in a minimal size increase.*/
-#define DROPBEAR_AES128
-#define DROPBEAR_3DES
-#define DROPBEAR_AES256
+#ifndef DROPBEAR_AES128
+#define DROPBEAR_AES128 1
+#endif
+#ifndef DROPBEAR_3DES
+#define DROPBEAR_3DES 1
+#endif
+#ifndef DROPBEAR_AES256
+#define DROPBEAR_AES256 1
+#endif
 /* Compiling in Blowfish will add ~6kB to runtime heap memory usage */
 /*#define DROPBEAR_BLOWFISH*/
-#define DROPBEAR_TWOFISH256
-#define DROPBEAR_TWOFISH128
+#ifndef DROPBEAR_TWOFISH256
+#define DROPBEAR_TWOFISH256 1
+#endif
+#ifndef DROPBEAR_TWOFISH128
+#define DROPBEAR_TWOFISH128 1
+#endif
 
 /* Enable CBC mode for ciphers. This has security issues though
  * is the most compatible with older SSH implementations */
-#define DROPBEAR_ENABLE_CBC_MODE
+#ifndef DROPBEAR_ENABLE_CBC_MODE
+#define DROPBEAR_ENABLE_CBC_MODE 1
+#endif
 
 /* Enable "Counter Mode" for ciphers. This is more secure than normal
  * CBC mode against certain attacks. It is recommended for security
  * and forwards compatibility */
-#define DROPBEAR_ENABLE_CTR_MODE
+#ifndef DROPBEAR_ENABLE_CTR_MODE
+#define DROPBEAR_ENABLE_CTR_MODE 1
+#endif
 
 /* Twofish counter mode is disabled by default because it 
 has not been tested for interoperability with other SSH implementations.
 If you test it please contact the Dropbear author */
-/* #define DROPBEAR_TWOFISH_CTR */
+#ifndef DROPBEAR_TWOFISH_CTR
+#define DROPBEAR_TWOFISH_CTR 0
+#endif
 
-/* You can compile with no encryption if you want. In some circumstances
- * this could be safe security-wise, though make sure you know what
- * you're doing. Anyone can see everything that goes over the wire, so
- * the only safe auth method is public key. */
-/* #define DROPBEAR_NONE_CIPHER */
+/* Message integrity. sha2-256 is recommended as a default, 
+   sha1 for compatibility */
+#ifndef DROPBEAR_SHA1_HMAC
+#define DROPBEAR_SHA1_HMAC 1
+#endif
+#ifndef DROPBEAR_SHA1_96_HMAC
+#define DROPBEAR_SHA1_96_HMAC 1
+#endif
+#ifndef DROPBEAR_SHA2_256_HMAC
+#define DROPBEAR_SHA2_256_HMAC 1
+#endif
+/* Default is to include it is sha512 is being compiled in for ECDSA */
+#ifndef DROPBEAR_SHA2_512_HMAC
+#define DROPBEAR_SHA2_512_HMAC (DROPBEAR_ECDSA)
+#endif
 
-/* Message Integrity - at least one required.
- * Protocol RFC requires sha1 and recommends sha1-96.
- * sha1-96 is of use for slow links as it has a smaller overhead.
- *
- * There's no reason to disable sha1 or sha1-96 to save space since it's
- * used for the random number generator and public-key cryptography anyway.
- * Disabling it here will just stop it from being used as the integrity portion
- * of the ssh protocol.
- *
- * These hashes are also used for public key fingerprints in logs.
- * If you disable MD5, Dropbear will fall back to SHA1 fingerprints,
- * which are not the standard form. */
-#define DROPBEAR_SHA1_HMAC
-#define DROPBEAR_SHA1_96_HMAC
-#define DROPBEAR_SHA2_256_HMAC
-#define DROPBEAR_SHA2_512_HMAC
-#define DROPBEAR_MD5_HMAC
-
-/* You can also disable integrity. Don't bother disabling this if you're
- * still using a cipher, it's relatively cheap. If you disable this it's dead
- * simple for an attacker to run arbitrary commands on the remote host. Beware. */
-/* #define DROPBEAR_NONE_INTEGRITY */
+/* XXX needed for fingerprints */
+#ifndef DROPBEAR_MD5_HMAC
+#define DROPBEAR_MD5_HMAC 0
+#endif
 
 /* Hostkey/public key algorithms - at least one required, these are used
  * for hostkey as well as for verifying signatures with pubkey auth.
  * Removing either of these won't save very much space.
- * SSH2 RFC Draft requires dss, recommends rsa */
-#define DROPBEAR_RSA
-#undef DROPBEAR_DSS
+ * RSA is recommended
+ * DSS may be necessary to connect to some systems though
+   is not recommended for new keys */
+#ifndef DROPBEAR_RSA
+#define DROPBEAR_RSA 1
+#endif
+#ifndef DROPBEAR_DSS
+#define DROPBEAR_DSS 1
+#endif
 /* ECDSA is significantly faster than RSA or DSS. Compiling in ECC
  * code (either ECDSA or ECDH) increases binary size - around 30kB
  * on x86-64 */
-#undef DROPBEAR_ECDSA
+#ifndef DROPBEAR_ECDSA
+#define DROPBEAR_ECDSA 1
+#endif
 
-/* Generate hostkeys as-needed when the first connection using that key type occurs.
+/* Add runtime flag "-R" to generate hostkeys as-needed when the first 
+   connection using that key type occurs.
    This avoids the need to otherwise run "dropbearkey" and avoids some problems
-   with badly seeded /dev/urandom when systems first boot.
-   This also requires a runtime flag "-R". This adds ~4kB to binary size (or hardly 
-   anything if dropbearkey is linked in a "dropbearmulti" binary) */
-#define DROPBEAR_DELAY_HOSTKEY
+   with badly seeded /dev/urandom when systems first boot. */
+#ifndef DROPBEAR_DELAY_HOSTKEY
+#define DROPBEAR_DELAY_HOSTKEY 1
+#endif
 
 /* Enable Curve25519 for key exchange. This is another elliptic
  * curve method with good security properties. Increases binary size
  * by ~8kB on x86-64 */
-#define DROPBEAR_CURVE25519
+#ifndef DROPBEAR_CURVE25519
+#define DROPBEAR_CURVE25519 1
+#endif
 
 /* Enable elliptic curve Diffie Hellman key exchange, see note about
  * ECDSA above */
-#define DROPBEAR_ECDH
+#ifndef DROPBEAR_ECDH
+#define DROPBEAR_ECDH 1
+#endif
+
+/* Key exchange algorithm.
+ * group14_sha1 - 2048 bit, sha1
+ * group14_sha256 - 2048 bit, sha2-256
+ * group16 - 4096 bit, sha2-512
+ * group1 - 1024 bit, sha1
+ *
+ * group14 is supported by most implementations.
+ * group16 provides a greater strength level but is slower and increases binary size
+ * group1 is too small for security though is necessary if you need 
+     compatibility with some implementations such as Dropbear versions < 0.53
+ */ 
+#ifndef DROPBEAR_DH_GROUP1
+#define DROPBEAR_DH_GROUP1 1
+#endif
+#ifndef DROPBEAR_DH_GROUP14_SHA1
+#define DROPBEAR_DH_GROUP14_SHA1 1
+#endif
+#ifndef DROPBEAR_DH_GROUP14_SHA256
+#define DROPBEAR_DH_GROUP14_SHA256 1
+#endif
+#ifndef DROPBEAR_DH_GROUP16
+#define DROPBEAR_DH_GROUP16 0
+#endif
 
 /* Control the memory/performance/compression tradeoff for zlib.
  * Set windowBits=8 for least memory usage, see your system's
@@ -182,21 +254,19 @@ If you test it please contact the Dropbear author */
 #define DROPBEAR_ZLIB_WINDOW_BITS 15 
 #endif
 
-/* Server won't allow zlib compression until after authentication. Prevents
-   flaws in the zlib library being unauthenticated exploitable flaws.
-   Some old ssh clients may not support the alternative zlib@openssh.com method */
-#define DROPBEAR_SERVER_DELAY_ZLIB 1
-
 /* Whether to do reverse DNS lookups. */
-/*#define DO_HOST_LOOKUP */
+#ifndef DO_HOST_LOOKUP
+#define DO_HOST_LOOKUP 0
+#endif
 
-/* Whether to print the message of the day (MOTD). This doesn't add much code
- * size */
-#undef DO_MOTD
+/* Whether to print the message of the day (MOTD). */
+#ifndef DO_MOTD
+#define DO_MOTD 0
+#endif
 
 /* The MOTD file path */
 #ifndef MOTD_FILENAME
-#define MOTD_FILENAME "/data/dropbear/motd"
+#define MOTD_FILENAME "/etc/motd"
 #endif
 
 /* Authentication Types - at least one required.
@@ -211,28 +281,46 @@ If you test it please contact the Dropbear author */
 
 /* This requires crypt() */
 #ifdef HAVE_CRYPT
-#define ENABLE_SVR_PASSWORD_AUTH
+#ifndef DROPBEAR_SVR_PASSWORD_AUTH
+#define DROPBEAR_SVR_PASSWORD_AUTH 1
+#endif
+#else
+#ifndef DROPBEAR_SVR_PASSWORD_AUTH
+#define DROPBEAR_SVR_PASSWORD_AUTH 0
+#endif
 #endif
 /* PAM requires ./configure --enable-pam */
-/*#define ENABLE_SVR_PAM_AUTH */
-#define ENABLE_SVR_PUBKEY_AUTH
+#ifndef DROPBEAR_SVR_PAM_AUTH
+#define DROPBEAR_SVR_PAM_AUTH 0
+#endif
+#ifndef DROPBEAR_SVR_PUBKEY_AUTH
+#define DROPBEAR_SVR_PUBKEY_AUTH 1
+#endif
 
 /* Whether to take public key options in 
  * authorized_keys file into account */
-#ifdef ENABLE_SVR_PUBKEY_AUTH
-#define ENABLE_SVR_PUBKEY_OPTIONS
+#ifndef DROPBEAR_SVR_PUBKEY_OPTIONS
+#define DROPBEAR_SVR_PUBKEY_OPTIONS 1
 #endif
 
 /* This requires getpass. */
 #ifdef HAVE_GETPASS
-#define ENABLE_CLI_PASSWORD_AUTH
-#define ENABLE_CLI_INTERACT_AUTH
+#ifndef DROPBEAR_CLI_PASSWORD_AUTH
+#define DROPBEAR_CLI_PASSWORD_AUTH 1
 #endif
-#define ENABLE_CLI_PUBKEY_AUTH
+#ifndef DROPBEAR_CLI_INTERACT_AUTH
+#define DROPBEAR_CLI_INTERACT_AUTH 1
+#endif
+#endif
+#ifndef DROPBEAR_CLI_PUBKEY_AUTH
+#define DROPBEAR_CLI_PUBKEY_AUTH 1
+#endif
 
 /* A default argument for dbclient -i <privatekey>. 
 Homedir is prepended unless path begins with / */
+#ifndef DROPBEAR_DEFAULT_CLI_AUTHKEY
 #define DROPBEAR_DEFAULT_CLI_AUTHKEY ".ssh/id_dropbear"
+#endif
 
 /* This variable can be used to set a password for client
  * authentication on the commandline. Beware of platforms
@@ -240,25 +328,33 @@ Homedir is prepended unless path begins with / */
  * note that it will be provided for all "hidden" client-interactive
  * style prompts - if you want something more sophisticated, use 
  * SSH_ASKPASS instead. Comment out this var to remove this functionality.*/
+#ifndef DROPBEAR_PASSWORD_ENV
 #define DROPBEAR_PASSWORD_ENV "DROPBEAR_PASSWORD"
+#endif
 
-/* Define this (as well as ENABLE_CLI_PASSWORD_AUTH) to allow the use of
+/* Define this (as well as DROPBEAR_CLI_PASSWORD_AUTH) to allow the use of
  * a helper program for the ssh client. The helper program should be
  * specified in the SSH_ASKPASS environment variable, and dbclient
  * should be run with DISPLAY set and no tty. The program should
  * return the password on standard output */
-/*#define ENABLE_CLI_ASKPASS_HELPER*/
+#ifndef DROPBEAR_CLI_ASKPASS_HELPER
+#define DROPBEAR_CLI_ASKPASS_HELPER 0
+#endif
 
 /* Save a network roundtrip by sendng a real auth request immediately after
  * sending a query for the available methods.  It is at the expense of < 100
  * bytes of extra network traffic. This is not yet enabled by default since it
  * could cause problems with non-compliant servers */
-/* #define DROPBEAR_CLI_IMMEDIATE_AUTH */
+#ifndef DROPBEAR_CLI_IMMEDIATE_AUTH
+#define DROPBEAR_CLI_IMMEDIATE_AUTH 0
+#endif
 
 /* Source for randomness. This must be able to provide hundreds of bytes per SSH
  * connection without blocking. In addition /dev/random is used for seeding
  * rsa/dss key generation */
+#ifndef DROPBEAR_URANDOM_DEV
 #define DROPBEAR_URANDOM_DEV "/dev/urandom"
+#endif
 
 /* Set this to use PRNGD or EGD instead of /dev/urandom or /dev/random */
 /*#define DROPBEAR_PRNGD_SOCKET "/var/run/dropbear-rng"*/
@@ -268,13 +364,13 @@ Homedir is prepended unless path begins with / */
  * not yet authenticated. After this limit, connections are rejected */
 /* The first setting is per-IP, to avoid denial of service */
 #ifndef MAX_UNAUTH_PER_IP
-#define MAX_UNAUTH_PER_IP 3
+#define MAX_UNAUTH_PER_IP 5
 #endif
 
 /* And then a global limit to avoid chewing memory if connections 
  * come from many IPs */
 #ifndef MAX_UNAUTH_CLIENTS
-#define MAX_UNAUTH_CLIENTS 10
+#define MAX_UNAUTH_CLIENTS 30
 #endif
 
 /* Maximum number of failed authentication tries (server option) */
@@ -285,7 +381,7 @@ Homedir is prepended unless path begins with / */
 /* The default file to store the daemon's process ID, for shutdown
    scripts etc. This can be overridden with the -P flag */
 #ifndef DROPBEAR_PIDFILE
-#define DROPBEAR_PIDFILE "/data/dropbear/dropbear.pid"
+#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
 #endif
 
 /* The command to invoke for xauth when using X11 forwarding.
@@ -298,17 +394,21 @@ Homedir is prepended unless path begins with / */
  * OpenSSH), set the path below. If the path isn't defined, sftp will not
  * be enabled */
 #ifndef SFTPSERVER_PATH
-#define SFTPSERVER_PATH "/data/dropbear/sftp-server"
+#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
 #endif
 
 /* This is used by the scp binary when used as a client binary. If you're
  * not using the Dropbear client, you'll need to change it */
-#define DROPBEAR_PATH_SSH_PROGRAM "/data/dropbear/dbclient"
+#ifndef DROPBEAR_PATH_SSH_PROGRAM
+#define DROPBEAR_PATH_SSH_PROGRAM "/usr/bin/dbclient"
+#endif
 
 /* Whether to log commands executed by a client. This only logs the 
  * (single) command sent to the server, not what a user did in a 
  * shell/sftp session etc. */
-/* #define LOG_COMMANDS */
+#ifndef LOG_COMMANDS
+#define LOG_COMMANDS 0
+#endif
 
 /* Window size limits. These tend to be a trade-off between memory
    usage and network performance: */
@@ -333,28 +433,26 @@ Homedir is prepended unless path begins with / */
 
 /* Ensure that data is transmitted every KEEPALIVE seconds. This can
 be overridden at runtime with -K. 0 disables keepalives */
+#ifndef DEFAULT_KEEPALIVE
 #define DEFAULT_KEEPALIVE 0
+#endif
 
 /* If this many KEEPALIVES are sent with no packets received from the
 other side, exit. Not run-time configurable - if you have a need
 for runtime configuration please mail the Dropbear list */
+#ifndef DEFAULT_KEEPALIVE_LIMIT
 #define DEFAULT_KEEPALIVE_LIMIT 3
+#endif
 
 /* Ensure that data is received within IDLE_TIMEOUT seconds. This can
 be overridden at runtime with -I. 0 disables idle timeouts */
+#ifndef DEFAULT_IDLE_TIMEOUT
 #define DEFAULT_IDLE_TIMEOUT 0
-
-/* The default path. This will often get replaced by the shell */
-#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin"
-
-#ifdef LOCALOPTIONS_H_EXISTS
-#include "localoptions.h"
 #endif
 
-#include "default_options.h"
+/* The default path. This will often get replaced by the shell */
+#ifndef DEFAULT_PATH
+#define DEFAULT_PATH "/usr/bin:/bin"
+#endif
 
-/* Some other defines that mostly should be left alone are defined
- * in sysoptions.h */
-#include "sysoptions.h"
-
-#endif /* DROPBEAR_OPTIONS_H */
+#endif /* DROPBEAR_DEFAULT_OPTIONS_H_ */

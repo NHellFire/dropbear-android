@@ -33,7 +33,7 @@
 #include "listener.h"
 #include "runopts.h"
 
-#ifdef DROPBEAR_TCP_ACCEPT
+#if DROPBEAR_TCP_ACCEPT
 
 static void cleanup_tcp(struct Listener *listener) {
 
@@ -121,7 +121,7 @@ int listen_tcpfwd(struct TCPListener* tcpinfo) {
 	TRACE(("enter listen_tcpfwd"))
 
 	/* first we try to bind, so don't need to do so much cleanup on failure */
-	snprintf(portstring, sizeof(portstring), "%d", tcpinfo->listenport);
+	snprintf(portstring, sizeof(portstring), "%u", tcpinfo->listenport);
 
 	nsocks = dropbear_listen(tcpinfo->listenaddr, portstring, socks, 
 			DROPBEAR_MAX_SOCKS, &errstring, &ses.maxfd);

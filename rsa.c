@@ -36,7 +36,7 @@
 #include "ssh.h"
 #include "dbrandom.h"
 
-#ifdef DROPBEAR_RSA 
+#if DROPBEAR_RSA 
 
 static void rsa_pad_em(dropbear_rsa_key * key,
 	buffer *data_buf, mp_int * rsa_em);
@@ -47,7 +47,7 @@ static void rsa_pad_em(dropbear_rsa_key * key,
  * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
 int buf_get_rsa_pub_key(buffer* buf, dropbear_rsa_key *key) {
 
-    int ret = DROPBEAR_FAILURE;
+	int ret = DROPBEAR_FAILURE;
 	TRACE(("enter buf_get_rsa_pub_key"))
 	dropbear_assert(key != NULL);
 	m_mp_alloc_init_multi(&key->e, &key->n, NULL);
@@ -60,21 +60,21 @@ int buf_get_rsa_pub_key(buffer* buf, dropbear_rsa_key *key) {
 	if (buf_getmpint(buf, key->e) == DROPBEAR_FAILURE
 	 || buf_getmpint(buf, key->n) == DROPBEAR_FAILURE) {
 		TRACE(("leave buf_get_rsa_pub_key: failure"))
-	    goto out;
+		goto out;
 	}
 
 	if (mp_count_bits(key->n) < MIN_RSA_KEYLEN) {
 		dropbear_log(LOG_WARNING, "RSA key too short");
-	    goto out;
+		goto out;
 	}
 
 	TRACE(("leave buf_get_rsa_pub_key: success"))
-    ret = DROPBEAR_SUCCESS;
+	ret = DROPBEAR_SUCCESS;
 out:
-    if (ret == DROPBEAR_FAILURE) {
-        m_free(key->e);
-        m_free(key->n);
-    }
+	if (ret == DROPBEAR_FAILURE) {
+		m_free(key->e);
+		m_free(key->n);
+	}
 	return ret;
 }
 
@@ -82,7 +82,7 @@ out:
  * Loads a private rsa key from a buffer
  * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
 int buf_get_rsa_priv_key(buffer* buf, dropbear_rsa_key *key) {
-    int ret = DROPBEAR_FAILURE;
+	int ret = DROPBEAR_FAILURE;
 
 	TRACE(("enter buf_get_rsa_priv_key"))
 	dropbear_assert(key != NULL);
@@ -99,34 +99,34 @@ int buf_get_rsa_priv_key(buffer* buf, dropbear_rsa_key *key) {
 	m_mp_alloc_init_multi(&key->d, NULL);
 	if (buf_getmpint(buf, key->d) == DROPBEAR_FAILURE) {
 		TRACE(("leave buf_get_rsa_priv_key: d: ret == DROPBEAR_FAILURE"))
-	    goto out;
+		goto out;
 	}
 
 	if (buf->pos == buf->len) {
-    	/* old Dropbear private keys didn't keep p and q, so we will ignore them*/
+		/* old Dropbear private keys didn't keep p and q, so we will ignore them*/
 	} else {
 		m_mp_alloc_init_multi(&key->p, &key->q, NULL);
 
 		if (buf_getmpint(buf, key->p) == DROPBEAR_FAILURE) {
 			TRACE(("leave buf_get_rsa_priv_key: p: ret == DROPBEAR_FAILURE"))
-		    goto out;
+			goto out;
 		}
 
 		if (buf_getmpint(buf, key->q) == DROPBEAR_FAILURE) {
 			TRACE(("leave buf_get_rsa_priv_key: q: ret == DROPBEAR_FAILURE"))
-		    goto out;
+			goto out;
 		}
 	}
 
-    ret = DROPBEAR_SUCCESS;
+	ret = DROPBEAR_SUCCESS;
 out:
-    if (ret == DROPBEAR_FAILURE) {
-        m_free(key->d);
-        m_free(key->p);
-        m_free(key->q);
-    }
+	if (ret == DROPBEAR_FAILURE) {
+		m_free(key->d);
+		m_free(key->p);
+		m_free(key->q);
+	}
 	TRACE(("leave buf_get_rsa_priv_key"))
-    return ret;
+	return ret;
 }
 	
 
@@ -204,7 +204,7 @@ void buf_put_rsa_priv_key(buffer* buf, dropbear_rsa_key *key) {
 
 }
 
-#ifdef DROPBEAR_SIGNKEY_VERIFY
+#if DROPBEAR_SIGNKEY_VERIFY
 /* Verify a signature in buf, made on data by the key given.
  * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
 int buf_rsa_verify(buffer * buf, dropbear_rsa_key *key, buffer *data_buf) {
@@ -279,7 +279,7 @@ void buf_put_rsa_sign(buffer* buf, dropbear_rsa_key *key, buffer *data_buf) {
 
 	/* the actual signing of the padded data */
 
-#ifdef RSA_BLINDING
+#if DROPBEAR_RSA_BLINDING
 
 	/* With blinding, s = (r^(-1))((em)*r^e)^d mod n */
 
@@ -322,7 +322,7 @@ void buf_put_rsa_sign(buffer* buf, dropbear_rsa_key *key, buffer *data_buf) {
 		dropbear_exit("RSA error");
 	}
 
-#endif /* RSA_BLINDING */
+#endif /* DROPBEAR_RSA_BLINDING */
 
 	mp_clear_multi(&rsa_tmp1, &rsa_tmp2, &rsa_tmp3, NULL);
 	

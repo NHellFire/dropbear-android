@@ -35,7 +35,7 @@
 #include "auth.h"
 #include "netio.h"
 
-#ifndef ENABLE_SVR_REMOTETCPFWD
+#ifndef DROPBEAR_SVR_REMOTETCPFWD
 
 /* This is better than SSH_MSG_UNIMPLEMENTED */
 void recv_msg_global_request_remotetcp() {
@@ -44,13 +44,13 @@ void recv_msg_global_request_remotetcp() {
 }
 
 /* */
-#endif /* !ENABLE_SVR_REMOTETCPFWD */
+#endif /* !DROPBEAR_SVR_REMOTETCPFWD */
 
-static int svr_cancelremotetcp();
-static int svr_remotetcpreq();
+static int svr_cancelremotetcp(void);
+static int svr_remotetcpreq(void);
 static int newtcpdirect(struct Channel * channel);
 
-#ifdef ENABLE_SVR_REMOTETCPFWD
+#if DROPBEAR_SVR_REMOTETCPFWD
 static const struct ChanType svr_chan_tcpremote = {
 	1, /* sepfds */
 	"forwarded-tcpip",
@@ -194,7 +194,7 @@ static int svr_remotetcpreq() {
 
 	tcpinfo->request_listenaddr = request_addr;
 	if (!opts.listen_fwd_all || (strcmp(request_addr, "localhost") == 0) ) {
-        /* NULL means "localhost only" */
+		/* NULL means "localhost only" */
 		tcpinfo->listenaddr = NULL;
 	}
 	else
@@ -215,9 +215,9 @@ out:
 	return ret;
 }
 
-#endif /* ENABLE_SVR_REMOTETCPFWD */
+#endif /* DROPBEAR_SVR_REMOTETCPFWD */
 
-#ifdef ENABLE_SVR_LOCALTCPFWD
+#if DROPBEAR_SVR_LOCALTCPFWD
 
 const struct ChanType svr_chan_tcpdirect = {
 	1, /* sepfds */
@@ -269,7 +269,7 @@ static int newtcpdirect(struct Channel * channel) {
 		goto out;
 	}
 
-	snprintf(portstring, sizeof(portstring), "%d", destport);
+	snprintf(portstring, sizeof(portstring), "%u", destport);
 	channel->conn_pending = connect_remote(desthost, portstring, channel_connect_done, channel);
 
 	channel->prio = DROPBEAR_CHANNEL_PRIO_UNKNOWABLE;
@@ -283,4 +283,4 @@ out:
 	return err;
 }
 
-#endif /* ENABLE_SVR_LOCALTCPFWD */
+#endif /* DROPBEAR_SVR_LOCALTCPFWD */
