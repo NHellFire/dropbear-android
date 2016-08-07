@@ -271,4 +271,4 @@ be overridden at runtime with -I. 0 disables idle timeouts */
 #define DEFAULT_IDLE_TIMEOUT 0
 
 /* The default path. This will often get replaced by the shell */
-#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin"
+#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin:/data/dropbear"
