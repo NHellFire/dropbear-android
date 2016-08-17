@@ -49,6 +49,7 @@ static void printhelp(const char * progname) {
 					"-G Android Mode, GID\n"
 #ifdef HAVE_CRYPT
 					"-e Android Mode, Encrypted passwords with crypt\n"
+                    "                 MUST be the last option\n"
 #endif
 					"-b bannerfile	Display the contents of bannerfile"
 					" before user login\n"
