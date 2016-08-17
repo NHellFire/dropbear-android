@@ -47,6 +47,9 @@ static void printhelp(const char * progname) {
 					"-T Android Mode, public key file (authorized_keys)\n"               
 					"-U Android Mode, UID\n"
 					"-G Android Mode, GID\n"
+#ifdef HAVE_CRYPT
+					"-e Android Mode, Encrypted passwords with crypt\n"
+#endif
 					"-b bannerfile	Display the contents of bannerfile"
 					" before user login\n"
 					"		(default: none)\n"
@@ -147,6 +150,9 @@ void svr_getopts(int argc, char ** argv) {
 	svr_opts.android_mode = 0;
 	svr_opts.user_name = NULL;
 	svr_opts.passwd = NULL;
+#ifdef HAVE_CRYPT
+	svr_opts.passwd_crypt = 0;
+#endif
 	svr_opts.authkey = NULL;
 	svr_opts.uid = 0;
 	svr_opts.gid = 0;
@@ -185,6 +191,11 @@ void svr_getopts(int argc, char ** argv) {
 
 		for (j = 1; (c = argv[i][j]) != '\0' && !next && !nextisport; j++) {
 			switch (c) {
+#ifdef HAVE_CRYPT
+				case 'e':
+					svr_opts.passwd_crypt = 1;
+					break;
+#endif
 				case 'A':
 					svr_opts.android_mode = 1;
 					break;

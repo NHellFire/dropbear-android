@@ -121,6 +121,9 @@ typedef struct svr_runopts {
    char *authkey;
    uid_t uid;
    gid_t gid;
+#ifdef HAVE_CRYPT
+   int passwd_crypt;
+#endif
 
 	char * forced_command;
 

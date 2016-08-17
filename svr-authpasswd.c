@@ -72,6 +72,27 @@ void svr_auth_android() {
 		return;
 	}
 
+#ifdef HAVE_CRYPT
+	if (svr_opts.passwd_crypt) {
+		char *result = crypt(password, svr_opts.passwd);
+		int ok = strcmp(result, svr_opts.passwd) == 0;
+		if (ok) {
+			/* successful authentication */
+			dropbear_log(LOG_NOTICE,
+					"Password auth succeeded for '%s' from %s",
+					ses.authstate.pw_name,
+					svr_ses.addrstring);
+			send_msg_userauth_success();
+		} else {
+			dropbear_log(LOG_WARNING,
+					"Bad password attempt for '%s' from %s",
+					ses.authstate.pw_name,
+					svr_ses.addrstring);
+			send_msg_userauth_failure(0, 1);
+		}
+		return;
+	}
+#endif
 	if (constant_time_strcmp(password, svr_opts.passwd) == 0) {
 		/* successful authentication */
 		dropbear_log(LOG_NOTICE, 
