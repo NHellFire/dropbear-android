@@ -202,6 +202,8 @@ static int checkpubkey(char* algo, unsigned int algolen,
 	unsigned int len, pos;
 	buffer * options_buf = NULL;
 	int line_num;
+	uid_t origuid;
+	gid_t origgid;
 
 	TRACE(("enter checkpubkey"))
 
@@ -232,8 +234,21 @@ static int checkpubkey(char* algo, unsigned int algolen,
 	snprintf(filename, 31, "/data/dropbear/authorized_keys");
 	}
 
-	/* open the file */
+	/* open the file as the authenticating user. */
+	origuid = getuid();
+	origgid = getgid();
+	if ((setegid(ses.authstate.pw_gid)) < 0 ||
+		(seteuid(ses.authstate.pw_uid)) < 0) {
+		dropbear_exit("Failed to set euid");
+	}
+
 	authfile = fopen(filename, "r");
+
+	if ((seteuid(origuid)) < 0 ||
+		(setegid(origgid)) < 0) {
+		dropbear_exit("Failed to revert euid");
+	}
+
 	if (authfile == NULL) {
 		goto out;
 	}
